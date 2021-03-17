@@ -1,16 +1,7 @@
 #!/bin/bash
 
 # disk2img2disk
-# Script by Cedrick Zumstein
-# Do nothing if you dont know what you do... 
-
-# TO DO List 
-# 1. if abort after failing cmp check!!
-# 2. main ?
-# 3. usage 
-# 4. 
-# 5. parameters
-# 6. cmp image/sd check!
+# Script by Cedrick Z
 
 echo -e '
 \033[1;34m                                  \033[0;33m                            ╒,* ╥@╩╩╩ÑN
