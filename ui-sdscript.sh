@@ -228,10 +228,45 @@ imgFolder='/opt/images/'
 
 ### Main:
 ##---------------------------------------------------------------------------------------------------
-sleep 2 ;clear
+sleep 2 
+A=${1,2,3,4}
+while [[ "$q1" != "1" && "$q1" != "2" && "$q1" != "3" && "$q1" != "4" ]] 
+do
+	if [ "$count" -eq "3" ] ; then
+		echo "exit scrip without doing something.."
+		exit 1
+	fi
+	clear
+	echo "
+ [ 1 ] copy a new image on SD card
+ [ 2 ] create new image
+ [ 3 ] check attached SD disk
+ [ 4 ] info and help
+ "
+	read -p "enter a number: " q1 
+	count=$((count+1))
+done
+case "$q1" in
+	1)
+		checkDev
+		rmOldParts
+                chooseIMG
+		img2sd
+		exit 1
+	;;
+	2)
+		checkDev
+		sd2img
+		exit 1
+	;;
+	3)
+		checkDev
+		exit 1
+	;;
+	4)
+		usage
+		exit 1
+esac
 
-echo "
- \[ 1 \] copy a new image on SD card
- \[ 2 \] create new image
- \[ 3 \] check attached SD disk
- \[ 4 \] info and help"
+exit 1
+
