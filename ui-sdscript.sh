@@ -229,3 +229,9 @@ imgFolder='/opt/images/'
 ### Main:
 ##---------------------------------------------------------------------------------------------------
 sleep 2 ;clear
+
+echo "
+ \[ 1 \] copy a new image on SD card
+ \[ 2 \] create new image
+ \[ 3 \] check attached SD disk
+ \[ 4 \] info and help"
