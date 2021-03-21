@@ -70,8 +70,8 @@ rmOldParts ()
 #	 osdSize=`fdisk -l $newSD |grep GiB |awk '{print $3}'`
 	oldParts=`fdisk -l $newSD |grep ^/dev |awk '{print $1}'`
 	echo ' [-] remove old partitions'
-	for i in $oldParts ;do `echo -e 'd\n\nw\n ' |fdisk $newSD` 1&2>/dev/null ;done
-	printf " [-]$GREEN all partitions deleted\n$minus\n\n"
+	for i in $oldParts ;do echo -e 'd\n\nw\n ' |fdisk $newSD 2&>/dev/null2&>/dev/null ;done
+	printf " [-] all partitions deleted\n$minus\n\n"
 }
 
 img2sd ()
@@ -88,27 +88,24 @@ chooseIMG ()
 	count=0
 	while [ "$c" == "0" ] && [ "$count" != "3" ]
 	do
-		read -p "do you want to use the latest image;
-$(ls -lt $imgFolder |grep ^- |head -n 1)
-y=yes n=no ;   " yesNo
-		if [ $yesNo == "yes" ] || [ $yesNo == "y" ] ;then
+		printf " [?] do you want to use the latest image; $(ls -lt $imgFolder |grep ^- |head -n 1)$GREEN y$NC =$GREEN yes$RED n$NC =$RED no$NC ;" ; read -p " " yesNo
+		if [[ "$yesNo" == "yes" ]] || [[ "$yesNo" == "y" ]] ;then
 			imgFile=`ls -lt $imgFolder |grep ^- |awk '{print $9}' |head -n 1`
 			img="$imgFolder$imgFile"
 			echo
 			c=1
 			count=3
 		fi
-		if [ $yesNo == "no" ] || [ $yesNo == "n" ] ;then
-			echo 'list of available images: '
-			echo
+		if [[ "$yesNo" == "no" ]] || [[ "$yesNo" == "n" ]] ;then
+			printf " [-] list of available images:\n\n "
 			ls -lt $imgFolder |grep ^- |awk '{print $9}'
-			read -p "select an image: " tstImg
+			read -p " [-] select an image: " tstImg
 			if [ -f $imgFolder$tstImg ] ;then
 				img="$imgFolder$tstImg"
-				echo 'image selected'
+				echo ' [-] image selected'
 				c=1
 			else
-				echo 'image not found... try again'
+				echo ' [!] image not found... try again'
 			fi
 		fi
 		count=$((count+1))
@@ -125,8 +122,11 @@ sd2img ()
 		mkdir /opt/images
 		echo " [-] $imgFolder created"
 	fi
-	echo ' [-] read the last used sector'
-	endSek=`fdisk -l $newSD |tail -n 1 |awk '{print $3}'`
+	Size=`fdisk -l --bytes $newSD |grep ^$newSD  |awk '{print $5}' |head -1`
+	SIZE=$(($Size/1000000))
+	printf " [-] size of partition is : $SIZE M\n [-] read the last used sector\n"
+#NOT SURE IF @VAR $endSek head -1 or tail -1 !!!!!!
+	endSek=`fdisk -l $newSD |grep ^$newSD  |awk '{print $3}' |head -1`
 	echo ' [-] extend the value by 1000 for safety'
 	rEnd=$(($endSek+1000))
         echo ' [-] find mountpoints and umonut it!'
@@ -153,61 +153,54 @@ sd2img ()
 	       fi
        fi
        if [ -f /opt/images/$nImgName-$toDay.img ] ;then
-               printf"\n$minus\n$RED [!] name is already taken - name: $nImgName-$toDay.img\n$NC"
-               read -p " [?] do you want to$RED overwrite$NC it or give it a$GREEN unique$NC name?$RED o=overwrite$NC /$GREEN u=unique$NC\: " ans
-                if [ "$ans" == "o" ] || [ "$ans" == "overwrite" ] ;then
-			rm -f /opt/images/$nImgName-$toDay.img 2>/dev/null
-                fi
-                if [ $ans == "u" ] || [ $ans == "unique:" ] ;then
+               printf "\n$minus\n$RED [!] name is already taken - name: $nImgName-$toDay.img\n$NC"
+               printf " [?] do you want to$RED overwrite$NC it or give it a$GREEN unique$NC name?$RED o$NC =$RED overwrite$NC /$GREEN u$NC =$GREEN unique$NC\: " ;read -p " " ans
+	       if [ $ans == "u" ] || [ $ans == "unique:" ] ;then
 			np="/opt/images/$nImgName-$toDay"
 			c=1
-			nppc=$np$c
+			nppc=$np-$c
 			while [ -f $nppc.img ]
 			do
 				c=$((c+1))
-				nppc=$np$c
+				nppc=$np-$c
 			done
 		      echo " [-] create new image: $nppc.img"
 	              dd if=$newSD  of=$nppc.img count=$rEnd status=progress
 		      printf " [-]$GREEN done $NC \n [-] check image\n"
 		      cmp -l $newSD $nppc.img -n $rEnd
-		      printf "$minus\n\n"
+		      printf "\n$minus\n\n"
 		      exit 1
-		fi
+		fi	
+                if [ "$ans" == "o" ] || [ "$ans" == "overwrite" ] ;then
+                       echo test
+                        rm -f /opt/images/$nImgName-$toDay.img 2>/dev/null
+			p="/opt/images/$nImgName-$toDay"
+	                echo " [-] create new image: $np.img"
+#       	        touch $np.img
+#               	echo "$np.img"
+              		dd if=$newSD  of=$np.img count=$rEnd status=progress
+	                printf " [-] done \n [-] check image \n"
+	                cmp -l $newSD $np.img -n $rEnd
+ 			printf "\n$minus\n\n"
+ 	                exit 1
+
+                fi
        else
 	       np="/opt/images/$nImgName-$toDay"
-
 	       echo " [-] create new image: $np.img"
 #	       touch $np.img
 #		echo "$np.img"
 	       dd if=$newSD  of=$np.img count=$rEnd status=progress
 	       printf " [-] done \n [-] check image \n"
                cmp -l $newSD $np.img -n $rEnd
-               printf "$minus\n\n"
+               printf "\n$minus\n\n"
                exit 1
        fi
 }
 
 usage ()
 {
-	echo
-	echo "$0 $version"
-	echo
-	echo $minus
-	echo '
-SYNOPSIS'
-	echo "	$0 [OPTIONS]"
-	echo '
-	-h, -help	output a usage message and exit.
-	-c, -check	check for attached SCSI removable disk
-	-s, -sd2img	check and create new image
-	-i, -img2sd	check, remove all from the sd an put a new image on it'
-	echo
-	echo "osvg=osvg
-imgFolder='/opt/images/'
-"
-	echo $minus
-	echo
+	printf "not ready yet"§
 }
 
 ### Main:
