@@ -2,34 +2,33 @@
 
 # disk2img2disk
 # Script by Cedrick Z
-
 minus='---------------------------------------------------------------------------------------------------'
 osvg=osvg
 imgFolder='/opt/images/'
 toDay=$(date +"%Y%m%d")
 nImgName='raw'
-version='v0.2'
+version='v2.1'
 RED='\033[0;31m'
 GREEN='\033[0;32m'
+YELL='\033[0;33m'
+BLUE='\033[1;34m'
 NC='\033[0m'
 
-
 clear
-echo -e '
-\033[1;34m                                  \033[0;33m                            ╒,* ╥@╩╩╩ÑN
-\033[1;34m                                  \033[0;33m                             `@.▓`      ╫⌐
-\033[1;34m                                  \033[0;33m                               ╘▓       ╓,
-\033[1;34m                                  \033[0;33m                                "╩@m \033[1;34m╗╝"  "╨N ╙⌐─
-\033[1;34m    ╓╓    ╓╓                      \033[0;33m                                    \033[1;34m║[      ]╣ `
-\033[1;34m    ╢▒  ╓╣╜   ]╢[               ║╢\033[0;33m  ]╢╩╙╨▓@        j▓┐                \033[1;34m╙╣     ,╢╜  \033[0;33m,
-\033[1;34m    ║▒╓╣╝            ,          ╢╣\033[0;33m  ]╢∩  ╫▓         ╟▓         ╫▓       \033[1;34m╙╝Ñ%╝╙  \033[0;33m ]╢,
-\033[1;34m    ║▒╚╢╖      ▒  ▒╣╜`╙╢╕  @╣╜╨h▒[\033[0;33m  ]╢▓╨╨╩▓╗  ╓@ÑÑ@, ╫▓  ,@   ╬▓ ╓@Ñ@╦    ╓╥╖, , ╠╢Ö"
-\033[1;34m    ║▒  ╚╣╖   j▒  ╢╣   ╣║ ╢╢    ▒[\033[0;33m   ╢Γ   ]╢∩]╢@ææ╬▓  ╫▓,▓╫▓,▓Ñ ╟╢╦╦╦╬╣  ▓╩  ╫▓╙ ]╢
-\033[1;34m    ║╣    ╨Ñ~ ]╣  ╢╢   ╢╢ └╣╖²,@╣[\033[0;33m   ╢▓╥╦@▓╝  ▓N²  ,   ▓▓  ╟╢╝  └▓╗   ,  ╫▓æ@▓`   ▓@╥
-\033[1;34m                             `    \033[0;33m   ²          ╙╙╙`        "     `╙╙╙`  ▓@,²
-    RaspberryPI Image Creator     \033[0;33m                                      .▓╝``╙╩▓╕
-\033[1;34m    by C.Z                        \033[0;33m                                       ▓▓╥╖╥@▓╛ \033[0m '
-echo
+echo -e "
+$BLUE#                                  $YELL                            ╒,* ╥@╩╩╩ÑN
+$BLUE#                                  $YELL                             \`@.▓\`      ╫⌐
+$BLUE#                                  $YELL                               ╘▓       ╓,
+$BLUE#                                  $YELL                                \"╩@m $BLUE╗╝\"  \"╨N ╙⌐─
+$BLUE#    ╓╓    ╓╓                      $YELL                                    $BLUE║[      ]╣ \`
+$BLUE#    ╢▒  ╓╣╜   ]╢\[               ║╢$YELL  \]╢╩╙╨▓@        j▓┐                $BLUE╙╣     ,╢╜  $YELL,
+$BLUE#    ║▒╓╣╝            ,          ╢╣$YELL  ]╢∩  ╫▓         ╟▓         ╫▓       $BLUE╙╝Ñ%╝╙  $YELL ]╢,
+$BLUE#    ║▒╚╢╖      ▒  ▒╣╜\`╙╢╕  @╣╜╨h▒[$YELL  ]╢▓╨╨╩▓╗  ╓@ÑÑ@, ╫▓  ,@   ╬▓ ╓@Ñ@╦    ╓╥╖, , ╠╢Ö\"
+$BLUE#    ║▒  ╚╣╖   j▒  ╢╣   ╣║ ╢╢    ▒[$YELL   ╢Γ   ]╢∩]╢@ææ╬▓  ╫▓,▓╫▓,▓Ñ ╟╢╦╦╦╬╣  ▓╩  ╫▓╙ ]╢
+$BLUE#    ║╣    ╨Ñ~ ]╣  ╢╢   ╢╢ └╣╖²,@╣[$YELL   ╢▓╥╦@▓╝  ▓N²  ,   ▓▓  ╟╢╝  └▓╗   ,  ╫▓æ@▓\`   ▓@╥
+$BLUE#                             \`    $YELL   ²          ╙╙╙\`        \"     \`╙╙╙\`  ▓@,²
+$BLUE# $YELL    RaspberryPI Image Creator     $YELL                                      .▓╝``╙╩▓╕
+$BLUE#    by C.Z                        $YELL                                       ▓▓╥╖╥@▓╛ $NC" 
 
 #Check if root
 if [ `whoami` != root ] ;then
@@ -37,17 +36,10 @@ if [ `whoami` != root ] ;then
 	exit 1
 fi
 
-#checkDep ()
-#{
-#	echo '    Check OS'
-#	ls -l /etc/ |egrep 'centos|red-hat' ||echo ''
-#	rpm -qa |grep hwinfo
-#}
-
 checkDev ()
 {
 	clear
-        printf "\n [+] Task: check attached SD disk\n\n$minus\n\n [-] check filesystem\n"
+        printf "\n$YELL -> check attached SD disk$NC \n\n [+] Task: check attached SD disk\n\n$minus\n\n [-] check filesystem\n"
 	rootDev=`lsblk |grep $osvg -B5 |grep -v $osvg| awk {'print $1'} |egrep '^.[a-z]'`
 	echo ' [-] check for attached SCSI removable disk'
 	newSD=`grep -Ff <(hwinfo  --disk --short) <(hwinfo --usb --short) |grep -v 'disk:' |awk '{print $1}'`
@@ -63,27 +55,36 @@ checkDev ()
 	printf " [-]$GREEN found: $newSD $NC \n$minus\n\n"
 }
 
+checkIMG () 
+{
+	if [[ -z $(ls -lt $imgFolder |grep ^- ) ]] ;then
+                printf " [-] You don't have any images in the image folder yet... \n [-] Check the variables or the folder \n [!]$RED script aborted without doing anything.$NC\n$minus\n\n"
+                exit 1
+        fi
+}
+
 rmOldParts ()
 {
 	clear
-	printf "\n [+] Task: remove old partitions\n\n$minus\n\n [-] count old partitions\n"
-#	 osdSize=`fdisk -l $newSD |grep GiB |awk '{print $3}'`
+	printf "\n$GREEN -> check attached SD disk >$YELL remove old partitions$NC \n\n [+] Task: remove old partitions\n\n$minus\n\n [-] count old partitions\n"
 	oldParts=`fdisk -l $newSD |grep ^/dev |awk '{print $1}'`
-	echo ' [-] remove old partitions'
-	for i in $oldParts ;do echo -e 'd\n\nw\n ' |fdisk $newSD 2&>/dev/null2&>/dev/null ;done
+	printf " [-]$RED remove old partitions in 10 seconds\n$NC [-]$RED press 'CTRL + C' if you want to abort\n$NC" ;sleep 11 
+	for i in $oldParts ;do echo -e 'd\n\nw\n ' |fdisk $newSD 2&>/dev/null ;done
 	printf " [-] all partitions deleted\n$minus\n\n"
 }
 
 img2sd ()
 {
 	clear
-	printf "\n [+] Task: copy image to the SD\n\n$minus\n\n [-] this will take a lot of time... get yourself a coffee... this step takes about 30 - 40 minutes\n\n"
+	printf "\n$GREEN -> check attached SD disk > remove old partitions > choose image >$YELL copy image on SD $NC \n [+] Task: copy image on SD\n\n$minus\n\n [-] this will take a lot of time... get yourself a coffee... this step takes about 20 - 40 minutes\n\n"
 	dd if=$img of=$newSD status=progress
 	printf "\n [-]$GREEN done$NC\n$minus\n\n"
 }
 
 chooseIMG ()
 {
+	clear
+	printf "\n$GREEN -> check attached SD disk > remove old partitions >$YELL choose image$NC \n\n [+] Task: choose image\n\n$minus\n\n"
 	c=0
 	count=0
 	while [ "$c" == "0" ] && [ "$count" != "3" ]
@@ -102,10 +103,10 @@ chooseIMG ()
 			read -p " [-] select an image: " tstImg
 			if [ -f $imgFolder$tstImg ] ;then
 				img="$imgFolder$tstImg"
-				echo ' [-] image selected'
+				echo ' [-]$GREEN image selected $NC'
 				c=1
 			else
-				echo ' [!] image not found... try again'
+				echo "$RED [!] image not found... try again $NC "
 			fi
 		fi
 		count=$((count+1))
@@ -115,7 +116,7 @@ chooseIMG ()
 sd2img ()
 {
 	clear
-        printf "\n [+] Task: create image from SD card\n\n$minus\n\n \n"
+        printf "\n$GREEN -> check attached SD disk >$YELL create image from SD card$NC \n\n [+] Task: create image from SD card\n\n$minus\n\n \n"
 	np="$imgFolder$nImgName-$toDay"
 	if [ ! -d /opt/images ] ;then
 		echo " [-] folder $imgFolder not found"
@@ -176,20 +177,15 @@ sd2img ()
                         rm -f /opt/images/$nImgName-$toDay.img 2>/dev/null
 			p="/opt/images/$nImgName-$toDay"
 	                echo " [-] create new image: $np.img"
-#       	        touch $np.img
-#               	echo "$np.img"
               		dd if=$newSD  of=$np.img count=$rEnd status=progress
 	                printf " [-]$GREEN done$NC \n [-] check image \n"
 	                cmp -l $newSD $np.img -n $rEnd
  			printf "\n$minus\n\n"
  	                exit 1
-
                 fi
        else
 	       np="/opt/images/$nImgName-$toDay"
 	       echo " [-] create new image: $np.img"
-#	       touch $np.img
-#		echo "$np.img"
 	       dd if=$newSD  of=$np.img count=$rEnd status=progress
 	       printf " [-]$GREEN done$NC \n [-] check image \n"
                cmp -l $newSD $np.img -n $rEnd
@@ -200,7 +196,7 @@ sd2img ()
 
 usage ()
 {
-	printf "not ready yet"§
+	printf "not ready yet"
 }
 
 ### Main:
@@ -214,18 +210,14 @@ do
 		exit 1
 	fi
 	clear
-	echo "
- [ 1 ] copy a new image on SD card
- [ 2 ] create new image
- [ 3 ] check attached SD disk
- [ 4 ] info and help
- "
+	printf "\n$minus\n\n [ 1 ] copy a image on SD card\n [ 2 ] create new image\n [ 3 ] check attached SD disk\n [ 4 ] info and help\n\n$minus\n "
 	read -p "enter a number: " q1 
 	count=$((count+1))
 done
 case "$q1" in
 	1)
 		checkDev
+		checkIMG
 		rmOldParts
                 chooseIMG
 		img2sd
@@ -244,6 +236,5 @@ case "$q1" in
 		usage
 		exit 1
 esac
-
 exit 1
 
