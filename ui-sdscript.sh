@@ -9,6 +9,9 @@ imgFolder='/opt/images/'
 toDay=$(date +"%Y%m%d")
 nImgName='raw'
 version='v0.2'
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+NC='\033[0m'
 
 
 clear
@@ -30,7 +33,7 @@ echo
 
 #Check if root
 if [ `whoami` != root ] ;then
-	echo "    you must be root! exit scrip without doing something.."
+	printf "\n\n$RED [!] you must be root! $NC exit scrip without doing something...\n$minus\n\n"
 	exit 1
 fi
 
@@ -43,49 +46,40 @@ fi
 
 checkDev ()
 {
-	echo 'check filesystem'
+	clear
+        printf "\n [+] Task: check attached SD disk\n\n$minus\n\n [-] check filesystem\n"
 	rootDev=`lsblk |grep $osvg -B5 |grep -v $osvg| awk {'print $1'} |egrep '^.[a-z]'`
-	echo 'check for attached SCSI removable disk'
+	echo ' [-] check for attached SCSI removable disk'
 	newSD=`grep -Ff <(hwinfo  --disk --short) <(hwinfo --usb --short) |grep -v 'disk:' |awk '{print $1}'`
 #       newSD=`dmesg |grep ' sd.*Attached SCSI removable disk' |awk '{print $5}' |awk -F '[' '{print $2}' |awk -F ']' '{print $1}' |tail -n 1`
 	if [ -z ${newSD+x} ] ;then
-		echo
-		echo 'nothing found... please check if the device connectet'
-		echo
+		printf "\n\n$RED [!] nothing found... please check if the device connectet\n $NC"
 		exit 1
 	fi
 	if [ `echo $newSD |wc -w ` -ge 2 ] ;then
-		echo
-		echo 'more than 1 usb device found, to be on the safe side the script is aborted'
-		echo
+		printf "\n\n $RED [!] more than 1 usb device found, to be on the safe side the script is aborted\n\n $NC"
 		exit 1
 	fi
-	echo "found: $newSD"
-	echo $minus
-	echo
+	printf " [-]$GREEN found: $newSD $NC \n$minus\n\n"
 }
 
 rmOldParts ()
 {
-	echo 'count old partitions'
+	clear
+	printf "\n [+] Task: remove old partitions\n\n$minus\n\n [-] count old partitions\n"
 #	 osdSize=`fdisk -l $newSD |grep GiB |awk '{print $3}'`
 	oldParts=`fdisk -l $newSD |grep ^/dev |awk '{print $1}'`
-	echo 'remove old partitions'
+	echo ' [-] remove old partitions'
 	for i in $oldParts ;do `echo -e 'd\n\nw\n ' |fdisk $newSD` 1&2>/dev/null ;done
-	echo 'all partitions deleted'
+	printf " [-]$GREEN all partitions deleted\n$minus\n\n"
 }
 
 img2sd ()
 {
-	echo 'copy img to the SD'
-	echo 'this will take a lot of time... get yourself a coffee... this step takes about 30 - 40 minutes'
-	echo
+	clear
+	printf "\n [+] Task: copy image to the SD\n\n$minus\n\n [-] this will take a lot of time... get yourself a coffee... this step takes about 30 - 40 minutes\n\n"
 	dd if=$img of=$newSD status=progress
-	echo
-	echo 'done'
-	echo
-	echo $minus
-	echo
+	printf "\n [-]$GREEN done$NC\n$minus\n\n"
 }
 
 chooseIMG ()
