@@ -88,7 +88,7 @@ chooseIMG ()
 	count=0
 	while [ "$c" == "0" ] && [ "$count" != "3" ]
 	do
-		printf " [?] do you want to use the latest image; $(ls -lt $imgFolder |grep ^- |head -n 1)$GREEN y$NC =$GREEN yes$RED n$NC =$RED no$NC ;" ; read -p " " yesNo
+		printf " [?] do you want to use the latest image; $(ls -lt $imgFolder |grep ^- |head -n 1 |awk '{print $9}')$GREEN y$NC =$GREEN yes$RED n$NC =$RED no$NC ;" ; read -p " " yesNo
 		if [[ "$yesNo" == "yes" ]] || [[ "$yesNo" == "y" ]] ;then
 			imgFile=`ls -lt $imgFolder |grep ^- |awk '{print $9}' |head -n 1`
 			img="$imgFolder$imgFile"
@@ -179,7 +179,7 @@ sd2img ()
 #       	        touch $np.img
 #               	echo "$np.img"
               		dd if=$newSD  of=$np.img count=$rEnd status=progress
-	                printf " [-] done \n [-] check image \n"
+	                printf " [-]$GREEN done$NC \n [-] check image \n"
 	                cmp -l $newSD $np.img -n $rEnd
  			printf "\n$minus\n\n"
  	                exit 1
@@ -191,7 +191,7 @@ sd2img ()
 #	       touch $np.img
 #		echo "$np.img"
 	       dd if=$newSD  of=$np.img count=$rEnd status=progress
-	       printf " [-] done \n [-] check image \n"
+	       printf " [-]$GREEN done$NC \n [-] check image \n"
                cmp -l $newSD $np.img -n $rEnd
                printf "\n$minus\n\n"
                exit 1
