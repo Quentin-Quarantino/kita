@@ -33,7 +33,7 @@ echo
 
 #Check if root
 if [ `whoami` != root ] ;then
-	printf "\n\n$RED [!] you must be root! $NC exit scrip without doing something...\n$minus\n\n"
+	printf "\n\n$RED [!] you must be root! $NC\n [-] exit scrip without doing something...\n$minus\n\n"
 	exit 1
 fi
 
@@ -117,49 +117,45 @@ y=yes n=no ;   " yesNo
 
 sd2img ()
 {
+	clear
+        printf "\n [+] Task: create image from SD card\n\n$minus\n\n \n"
 	np="$imgFolder$nImgName-$toDay"
 	if [ ! -d /opt/images ] ;then
-		echo "folder $imgFolder not found"
+		echo " [-] folder $imgFolder not found"
 		mkdir /opt/images
-		echo "$imgFolder created"
+		echo " [-] $imgFolder created"
 	fi
-	echo 'read the last used sector'
+	echo ' [-] read the last used sector'
 	endSek=`fdisk -l $newSD |tail -n 1 |awk '{print $3}'`
-	echo 'extend the value by 1000 for safety'
+	echo ' [-] extend the value by 1000 for safety'
 	rEnd=$(($endSek+1000))
-        echo 'find mountpoints and umonut it!'
+        echo ' [-] find mountpoints and umonut it!'
         um=`echo $newSD |tr '/' ' ' |awk '{print $2}'`
         um1=`lsblk |egrep $um.*part |awk '{print $7}'`
-	if [ ! -z `lsblk |egrep $um.*part |awk '{print $7}'` ] ;then
+	if [ ! -z "$um1" ] ;then
 		 umount $um1
 	fi
-
-	if [ -z `lsblk |egrep $um.*part |awk '{print $7}'` ] ;then
-		echo 'umount successfully'
+	um1=`lsblk |egrep $um.*part |awk '{print $7}'`
+	if [ -z "$um1" ] ;then
+		 printf " [-]$GREEN umount successfully$NC\n"
 	else
 		count=0
-		while [ ! -z `lsblk |egrep $um.*part |awk '{print $7}'` ] || [ "$count" == "3" ]
+		while [ ! -z "$um1" ] || [ "$count" == "3" ]
 		do
-			echo 'try force umount'
-			umount -f $um1
+			echo ' [!] try force umount'
+			umount -f $um1 
 			count=$((count+1))
+			um1=`lsblk |egrep $um.*part |awk '{print $7}'`
 		done
-		if [ ! -z `lsblk |egrep $um.*part |awk '{print $7}'` ] ;then
-		       echo 'umount cannot be performed'
-		       echo 'Try to do this manually and with the following command this step can be done:'
-		       echo 'check manually if the name is already assigned'
-		       echo
-		       echo "dd if=$newSD  of=/opt/images/$nImgName-$toDay.img count=$rEnd status=progress"
-		       echo
-		       echo "Do nothing if you dont know what you do... "
-		       echo $minus
+		if [ ! -z "$um1" ] ;then
+		       printf "$RED\n [!] umount cannot be performed\n [!] try to do this manually and with the following command this step can be done:\n$NC [-] check manually if the name is already assigned\n\n [c] dd if=$newSD  of=/opt/images/$nImgName-$toDay.img count=$rEnd status=progress \n\n $RES [!] Do nothing if you dont know what you do... $NC \n$minus"
 		       exit 1
 	       fi
        fi
        if [ -f /opt/images/$nImgName-$toDay.img ] ;then
-               echo 'name is already taken'
-               read -p "do you want to overwrite it or give it a unique name (name-number)? o=overwrite / u=unique: " ans
-                if [ $ans == "o" ] || [ $ans == "overwrite" ] ;then
+               printf"\n$minus\n$RED [!] name is already taken - name: $nImgName-$toDay.img\n$NC"
+               read -p " [?] do you want to$RED overwrite$NC it or give it a$GREEN unique$NC name?$RED o=overwrite$NC /$GREEN u=unique$NC\: " ans
+                if [ "$ans" == "o" ] || [ "$ans" == "overwrite" ] ;then
 			rm -f /opt/images/$nImgName-$toDay.img 2>/dev/null
                 fi
                 if [ $ans == "u" ] || [ $ans == "unique:" ] ;then
@@ -171,30 +167,24 @@ sd2img ()
 				c=$((c+1))
 				nppc=$np$c
 			done
-		      echo "create new image: $nppc.img"
+		      echo " [-] create new image: $nppc.img"
 	              dd if=$newSD  of=$nppc.img count=$rEnd status=progress
-		      echo 'done'
-		      echo 'check image'
+		      printf " [-]$GREEN done $NC \n [-] check image\n"
 		      cmp -l $newSD $nppc.img -n $rEnd
-		      echo $minus
-		      echo
+		      printf "$minus\n\n"
 		      exit 1
 		fi
-
        else
 	       np="/opt/images/$nImgName-$toDay"
 
-	       echo "create new image: $np.img"
-	       touch $np.img
-		echo "$np.img"
+	       echo " [-] create new image: $np.img"
+#	       touch $np.img
+#		echo "$np.img"
 	       dd if=$newSD  of=$np.img count=$rEnd status=progress
-	       echo 'done'
-	       echo 'check image'
-               cmp -l $newSD $np.img
-               echo $minus
-               echo
+	       printf " [-] done \n [-] check image \n"
+               cmp -l $newSD $np.img -n $rEnd
+               printf "$minus\n\n"
                exit 1
-
        fi
 }
 
