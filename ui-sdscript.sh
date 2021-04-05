@@ -127,7 +127,7 @@ sd2img ()
 	SIZE=$(($Size/1000000))
 	printf " [-] size of partition is : $SIZE M\n [-] read the last used sector\n"
 #NOT SURE IF @VAR $endSek head -1 or tail -1 !!!!!!
-	endSek=`fdisk -l $newSD |grep ^$newSD  |awk '{print $3}' |head -1`
+	endSek=`fdisk -l $newSD |grep ^$newSD  |awk '{print $3}' |tail -1`
 	echo ' [-] extend the value by 1000 for safety'
 	rEnd=$(($endSek+1000))
         echo ' [-] find mountpoints and umonut it!'
