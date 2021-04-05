@@ -123,7 +123,7 @@ sd2img ()
 		mkdir /opt/images
 		echo " [-] $imgFolder created"
 	fi
-	Size=`fdisk -l --bytes $newSD |grep ^$newSD  |awk '{print $5}' |head -1`
+	Size=`fdisk -l --bytes $newSD |grep ^$newSD  |awk '{print $5}' |tail -1`
 	SIZE=$(($Size/1000000))
 	printf " [-] size of partition is : $SIZE M\n [-] read the last used sector\n"
 #NOT SURE IF @VAR $endSek head -1 or tail -1 !!!!!!
