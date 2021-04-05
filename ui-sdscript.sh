@@ -79,6 +79,10 @@ img2sd ()
 	printf "\n$GREEN -> check attached SD disk > remove old partitions > choose image >$YELL copy image on SD $NC \n [+] Task: copy image on SD\n\n$minus\n\n [-] this will take a lot of time... get yourself a coffee... this step takes about 20 - 40 minutes\n\n"
 	dd if=$img of=$newSD status=progress
 	printf "\n [-]$GREEN done$NC\n$minus\n\n"
+        sleep 5
+        Device=`echo $newSD |tr '/' ' ' |awk '{print $2}'`
+        echo 1 >/sys/class/block/$Device/device/delete 2&>/dev/null
+
 }
 
 chooseIMG ()
@@ -126,7 +130,6 @@ sd2img ()
 	Size=`fdisk -l --bytes $newSD |grep ^$newSD  |awk '{print $5}' |tail -1`
 	SIZE=$(($Size/1000000))
 	printf " [-] size of partition is : $SIZE M\n [-] read the last used sector\n"
-#NOT SURE IF @VAR $endSek head -1 or tail -1 !!!!!!
 	endSek=`fdisk -l $newSD |grep ^$newSD  |awk '{print $3}' |tail -1`
 	echo ' [-] extend the value by 1000 for safety'
 	rEnd=$(($endSek+1000))
@@ -192,6 +195,9 @@ sd2img ()
                printf "\n$minus\n\n"
                exit 1
        fi
+       sleep 5
+       Device=`echo $newSD |tr '/' ' ' |awk '{print $2}'`
+       echo 1 >/sys/class/block/$Device/device/delete 2&>/dev/null
 }
 
 usage ()
