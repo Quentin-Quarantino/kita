@@ -61,15 +61,19 @@ checkDev ()
 		printf " [-] lvm found \n [-] root disk: $rootDev \n [-] osvg: $osvg \n"
 	fi
 	echo ' [-] check for attached SCSI removable disk'
+	# save in variable like "/dev/sda" or "/dev/sda \n /dev/sdb"
 	newSD=`grep -Ff <(hwinfo  --disk --short) <(hwinfo --usb --short) |grep -v 'disk:' |awk '{print $1}'`
+	# check if $newSD empty. if empty exit script  
 	if [ -z ${newSD+x} ] ;then
 		printf "\n\n$RED [!] nothing found... please check if the device connectet\n $NC"
 		exit 1
 	fi
+	# check if there 2 usb device, are there 2 exit script
 	if [ `echo $newSD |wc -w ` -ge 2 ] ;then
 		printf "\n\n $RED [!] more than 1 usb device found, to be on the safe side the script is aborted\n\n $NC"
 		exit 1
 	fi
+	# display disk
 	printf " [-]$GREEN found: $newSD $NC \n$minus\n\n"
 }
 
