@@ -79,6 +79,7 @@ checkDev ()
 
 checkIMG () 
 {
+	# check if there images in the folder /opt/images 
 	if [[ -z $(ls -lt $imgFolder |grep ^- ) ]] ;then
                 printf " [-] You don't have any images in the image folder yet... \n [-] Check the variables or the folder \n [!]$RED script aborted without doing anything.$NC\n$minus\n\n"
                 exit 1
@@ -89,9 +90,11 @@ rmOldParts ()
 {
 	clear
 	printf "\n$GREEN -> check attached SD disk >$YELL remove old partitions$NC \n\n [+] Task: remove old partitions\n\n$minus\n\n [-] count old partitions\n"
+	# save full path of partitions in variable 
 	oldParts=`fdisk -l $newSD |grep ^/dev |awk '{print $1}'`
 	printf " [-]$RED remove old partitions in 10 seconds\n$NC [-]$RED press 'CTRL + C' if you want to abort\n$NC" ;sleep 11 
-	for i in $oldParts ;do echo -e 'd\n\nw\n ' |fdisk $newSD 2&>/dev/null ;done
+	# after 10 seconds start remove all partitions 
+	for i in $oldParts ;do echo -e 'd\n\nw\n ' |fdisk $newSD 2&>/dev/null ;done ;partprobe
 	printf " [-] all partitions deleted\n$minus\n\n"
 }
 
@@ -99,30 +102,34 @@ img2sd ()
 {
 	clear
 	printf "\n$GREEN -> check attached SD disk > remove old partitions > choose image >$YELL copy image on SD $NC \n [+] Task: copy image on SD\n\n$minus\n\n [-] this will take a lot of time... get yourself a coffee... this step takes about 20 - 40 minutes\n\n"
+	# dd image on disk
 	dd if=$img of=$newSD status=progress
 	printf "\n [-]$GREEN done$NC\n$minus\n\n"
         sleep 5
-        Device=`echo $newSD |tr '/' ' ' |awk '{print $2}'`
+	# convert "/dev/sdX" to "sdX" and save it in variable 
+        Device=`echo $newSD |tr '/' ' ' |awk '{print $NF}'`
+	# remove disk securly 
         echo 1 >/sys/class/block/$Device/device/delete 2&>/dev/null
-
 }
 
 chooseIMG ()
 {
 	clear
 	printf "\n$GREEN -> check attached SD disk > remove old partitions >$YELL choose image$NC \n\n [+] Task: choose image\n\n$minus\n\n"
-	c=0
-	count=0
+	c=0 ;count=0
+	# you have 3 tries to choose between yes and no so i cant be endless a wrong answer 
 	while [ "$c" == "0" ] && [ "$count" != "3" ]
 	do
+		# print newst image and ask if you want to choose this
 		printf " [?] do you want to use the latest image; $(ls -lt $imgFolder |grep ^- |head -n 1 |awk '{print $9}')$GREEN y$NC =$GREEN yes$RED n$NC =$RED no$NC ;" ; read -p " " yesNo
 		if [[ "$yesNo" == "yes" ]] || [[ "$yesNo" == "y" ]] ;then
-			imgFile=`ls -lt $imgFolder |grep ^- |awk '{print $9}' |head -n 1`
-			img="$imgFolder$imgFile"
-			echo
-			c=1
-			count=3
+			# latest image save with fill path to variable
+			imgFile=`ls -lt $imgFolder |grep ^- |awk '{print $9}' |head -n 1` ;img="$imgFolder$imgFile"
+			echo  
+			# break first condition
+			c=1 ;count=3
 		fi
+		# if you dont want to use the newst image 
 		if [[ "$yesNo" == "no" ]] || [[ "$yesNo" == "n" ]] ;then
 			printf " [-] list of available images:\n\n "
 			ls -lt $imgFolder |grep ^- |awk '{print $9}'
@@ -135,6 +142,7 @@ chooseIMG ()
 				echo "$RED [!] image not found... try again $NC "
 			fi
 		fi
+		# count to break the loop 
 		count=$((count+1))
 	done
 }
@@ -217,9 +225,7 @@ sd2img ()
                printf "\n$minus\n\n"
                exit 1
        fi
-       sleep 5
-       Device=`echo $newSD |tr '/' ' ' |awk '{print $2}'`
-       echo 1 >/sys/class/block/$Device/device/delete 2&>/dev/null
+       sleep 5 ;Device=`echo $newSD |tr '/' ' ' |awk '{print $2}'` ;echo 1 >/sys/class/block/$Device/device/delete 2&>/dev/null
 }
 
 usage ()
