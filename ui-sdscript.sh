@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Script by Cedrick Z
-# div. variables 
+# div. variables
 
 minus='---------------------------------------------------------------------------------------------------'
 osvg=osvg
@@ -30,7 +30,7 @@ $BLUE#    ║▒  ╚╣╖   j▒  ╢╣   ╣║ ╢╢    ▒[$YELL   ╢Γ 
 $BLUE#    ║╣    ╨Ñ~ ]╣  ╢╢   ╢╢ └╣╖²,@╣[$YELL   ╢▓╥╦@▓╝  ▓N²  ,   ▓▓  ╟╢╝  └▓╗   ,  ╫▓æ@▓\`   ▓@╥
 $BLUE#                             \`    $YELL   ²          ╙╙╙\`        \"     \`╙╙╙\`  ▓@,²
 $BLUE# $YELL    RaspberryPI Image Creator     $YELL                                      .▓╝``╙╩▓╕
-$BLUE#    by C.Z                        $YELL                                       ▓▓╥╖╥@▓╛ $NC" 
+$BLUE#    by C.Z                        $YELL                                       ▓▓╥╖╥@▓╛ $NC"
 
 #Check if root
 if [ `whoami` != root ] ;then
@@ -41,7 +41,7 @@ fi
 checkDev ()
 {
 	clear
-	# check fs and attached sd 
+	# check fs and attached sd
         printf "\n$YELL -> check attached SD disk$NC \n\n [+] Task: check attached SD disk\n\n$minus\n\n [-] check filesystem\n"
 	# check if lvm for / used "/dev/mapper/archvg-slashlv" or "/dev/sda3"
 	rpart=$(df |grep " /$" |awk '{print $1}')
@@ -53,8 +53,8 @@ checkDev ()
 		# ausgabe ist die Disk z.b "sda" oder "nvme0n1"
 		rootDev=$(lsblk |grep $slashpart -B5 |grep -v $slashpart |awk '{print $1}' |egrep '^.[a-z]')
 		echo -e " [-] no lvm used, root disk is: $GREEN $rootDev $NC"
-	else 
-		# save the osVG 
+	else
+		# save the osVG
 		osvg=$(lvs $rpart |grep -v LSize |awk '{print $2}')
 		# ausgabe ist die Disk z.b "sda" oder "nvme0n1"
 		rootDev=`lsblk |grep $osvg -B5 |grep -v $osvg| awk '{print $1}' |egrep '^.[a-z]'`
@@ -63,7 +63,7 @@ checkDev ()
 	echo ' [-] check for attached SCSI removable disk'
 	# save in variable like "/dev/sda" or "/dev/sda \n /dev/sdb"
 	newSD=`grep -Ff <(hwinfo  --disk --short) <(hwinfo --usb --short) |grep -v 'disk:' |awk '{print $1}'`
-	# check if $newSD empty. if empty exit script  
+	# check if $newSD empty. if empty exit script
 	if [ -z ${newSD+x} ] ;then
 		printf "\n\n$RED [!] nothing found... please check if the device connectet\n $NC"
 		exit 1
@@ -77,9 +77,9 @@ checkDev ()
 	printf " [-]$GREEN found: $newSD $NC \n$minus\n\n"
 }
 
-checkIMG () 
+checkIMG ()
 {
-	# check if there images in the folder /opt/images 
+	# check if there images in the folder /opt/images
 	if [[ -z $(ls -lt $imgFolder |grep ^- ) ]] ;then
                 printf " [-] You don't have any images in the image folder yet... \n [-] Check the variables or the folder \n [!]$RED script aborted without doing anything.$NC\n$minus\n\n"
                 exit 1
@@ -90,10 +90,10 @@ rmOldParts ()
 {
 	clear
 	printf "\n$GREEN -> check attached SD disk >$YELL remove old partitions$NC \n\n [+] Task: remove old partitions\n\n$minus\n\n [-] count old partitions\n"
-	# save full path of partitions in variable 
+	# save full path of partitions in variable
 	oldParts=`fdisk -l $newSD |grep ^/dev |awk '{print $1}'`
-	printf " [-]$RED remove old partitions in 10 seconds\n$NC [-]$RED press 'CTRL + C' if you want to abort\n$NC" ;sleep 11 
-	# after 10 seconds start remove all partitions 
+	printf " [-]$RED remove old partitions in 10 seconds\n$NC [-]$RED press 'CTRL + C' if you want to abort\n$NC" ;sleep 11
+	# after 10 seconds start remove all partitions
 	for i in $oldParts ;do echo -e 'd\n\nw\n ' |fdisk $newSD 2&>/dev/null ;done ;partprobe
 	printf " [-] all partitions deleted\n$minus\n\n"
 }
@@ -106,9 +106,9 @@ img2sd ()
 	dd if=$img of=$newSD status=progress
 	printf "\n [-]$GREEN done$NC\n$minus\n\n"
         sleep 5
-	# convert "/dev/sdX" to "sdX" and save it in variable 
+	# convert "/dev/sdX" to "sdX" and save it in variable
         Device=`echo $newSD |tr '/' ' ' |awk '{print $NF}'`
-	# remove disk securly 
+	# remove disk securly
         echo 1 >/sys/class/block/$Device/device/delete 2&>/dev/null
 }
 
@@ -117,7 +117,7 @@ chooseIMG ()
 	clear
 	printf "\n$GREEN -> check attached SD disk > remove old partitions >$YELL choose image$NC \n\n [+] Task: choose image\n\n$minus\n\n"
 	c=0 ;count=0
-	# you have 3 tries to choose between yes and no so i cant be endless a wrong answer 
+	# you have 3 tries to choose between yes and no so i cant be endless a wrong answer
 	while [ "$c" == "0" ] && [ "$count" != "3" ]
 	do
 		# print newst image and ask if you want to choose this
@@ -125,15 +125,17 @@ chooseIMG ()
 		if [[ "$yesNo" == "yes" ]] || [[ "$yesNo" == "y" ]] ;then
 			# latest image save with fill path to variable
 			imgFile=`ls -lt $imgFolder |grep ^- |awk '{print $9}' |head -n 1` ;img="$imgFolder$imgFile"
-			echo  
+			echo
 			# break first condition
 			c=1 ;count=3
 		fi
-		# if you dont want to use the newst image 
+		# if you dont want to use the newst image
 		if [[ "$yesNo" == "no" ]] || [[ "$yesNo" == "n" ]] ;then
 			printf " [-] list of available images:\n\n "
+			# list available images
 			ls -lt $imgFolder |grep ^- |awk '{print $9}'
 			read -p " [-] select an image: " tstImg
+			# test file exist and if true exit while
 			if [ -f $imgFolder$tstImg ] ;then
 				img="$imgFolder$tstImg"
 				echo ' [-]$GREEN image selected $NC'
@@ -142,7 +144,7 @@ chooseIMG ()
 				echo "$RED [!] image not found... try again $NC "
 			fi
 		fi
-		# count to break the loop 
+		# count to break the loop
 		count=$((count+1))
 	done
 }
@@ -177,7 +179,7 @@ sd2img ()
 		while [ ! -z "$um1" ] || [ "$count" == "3" ]
 		do
 			echo ' [!] try force umount'
-			umount -f $um1 
+			umount -f $um1
 			count=$((count+1))
 			um1=`lsblk |egrep $um.*part |awk '{print $7}'`
 		done
@@ -204,7 +206,7 @@ sd2img ()
 		      cmp -l $newSD $nppc.img -n $rEnd
 		      printf "\n$minus\n\n"
 		      exit 1
-		fi	
+		fi
                 if [ "$ans" == "o" ] || [ "$ans" == "overwrite" ] ;then
                        echo test
                         rm -f /opt/images/$nImgName-$toDay.img 2>/dev/null
@@ -235,9 +237,9 @@ usage ()
 
 ### Main:
 ##---------------------------------------------------------------------------------------------------
-sleep 2 
+sleep 2
 A=${1,2,3,4}
-while [[ "$q1" != "1" && "$q1" != "2" && "$q1" != "3" && "$q1" != "4" ]] 
+while [[ "$q1" != "1" && "$q1" != "2" && "$q1" != "3" && "$q1" != "4" ]]
 do
 	if [ "$count" -eq "3" ] ; then
 		echo "exit scrip without doing something.."
@@ -245,7 +247,7 @@ do
 	fi
 	clear
 	printf "\n$minus\n\n [ 1 ] copy a image on SD card\n [ 2 ] create new image\n [ 3 ] check attached SD disk\n [ 4 ] info and help\n\n$minus\n "
-	read -p "enter a number: " q1 
+	read -p "enter a number: " q1
 	count=$((count+1))
 done
 case "$q1" in
@@ -271,4 +273,3 @@ case "$q1" in
 		exit 1
 esac
 exit 1
-
