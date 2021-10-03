@@ -47,19 +47,18 @@ checkDev ()
 	rpart=$(df |grep " /$" |awk '{print $1}')
 	# variable is empty if not lvm
 	ckrdev=´lvs $rpart 2>/dev/null´
-	if [ -z ${ckrdev} ] ;then
+	if [ ! -z ${ckrdev} ] ;then
 		# ausgabe ist die partition z.B "sda2" oder "nvme0n1p1"
 		slashpart=$(df |grep " /$" |awk '{print $1}' |tr '/' ' ' |awk '{print $NF}')
 		# ausgabe ist die Disk z.b "sda" oder "nvme0n1"
 		rootDev=$(lsblk |grep $slashpart -B5 |grep -v $slashpart |awk '{print $1}' |egrep '^.[a-z]')
-		echo "no lvm used, root disk is: $GREEN $rootDev $NC "
+		echo -e " [-] no lvm used, root disk is: $GREEN $rootDev $NC"
 	else 
 		# save the osVG 
 		osvg=$(lvs $rpart |grep -v LSize |awk '{print $2}')
 		# ausgabe ist die Disk z.b "sda" oder "nvme0n1"
 		rootDev=`lsblk |grep $osvg -B5 |grep -v $osvg| awk '{print $1}' |egrep '^.[a-z]'`
-		echo -e " [-] root disk: $rootDev"
-		echo -e " [-] osvg: $osvg"
+		printf " [-] lvm found \n [-] root disk: $rootDev \n [-] osvg: $osvg \n"
 	fi
 	echo ' [-] check for attached SCSI removable disk'
 	newSD=`grep -Ff <(hwinfo  --disk --short) <(hwinfo --usb --short) |grep -v 'disk:' |awk '{print $1}'`
