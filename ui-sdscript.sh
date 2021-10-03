@@ -1,7 +1,8 @@
 #!/bin/bash
 
-# disk2img2disk
 # Script by Cedrick Z
+# div. variables 
+
 minus='---------------------------------------------------------------------------------------------------'
 osvg=osvg
 imgFolder='/opt/images/'
@@ -14,6 +15,7 @@ YELL='\033[0;33m'
 BLUE='\033[1;34m'
 NC='\033[0m'
 
+# start banner
 clear
 echo -e "
 $BLUE#                                  $YELL                            ╒,* ╥@╩╩╩ÑN
@@ -39,11 +41,28 @@ fi
 checkDev ()
 {
 	clear
+	# check fs and attached sd 
         printf "\n$YELL -> check attached SD disk$NC \n\n [+] Task: check attached SD disk\n\n$minus\n\n [-] check filesystem\n"
-	rootDev=`lsblk |grep $osvg -B5 |grep -v $osvg| awk {'print $1'} |egrep '^.[a-z]'`
+	# check if lvm for / used "/dev/mapper/archvg-slashlv" or "/dev/sda3"
+	rpart=$(df |grep " /$" |awk '{print $1}')
+	# variable is empty if not lvm
+	ckrdev=´lvs $rpart 2>/dev/null´
+	if [ -z ${ckrdev} ] ;then
+		# ausgabe ist die partition z.B "sda2" oder "nvme0n1p1"
+		slashpart=$(df |grep " /$" |awk '{print $1}' |tr '/' ' ' |awk '{print $NF}')
+		# ausgabe ist die Disk z.b "sda" oder "nvme0n1"
+		rootDev=$(lsblk |grep $slashpart -B5 |grep -v $slashpart |awk '{print $1}' |egrep '^.[a-z]')
+		echo "no lvm used, root disk is: $GREEN $rootDev $NC "
+	else 
+		# save the osVG 
+		osvg=$(lvs $rpart |grep -v LSize |awk '{print $2}')
+		# ausgabe ist die Disk z.b "sda" oder "nvme0n1"
+		rootDev=`lsblk |grep $osvg -B5 |grep -v $osvg| awk '{print $1}' |egrep '^.[a-z]'`
+		echo -e " [-] root disk: $rootDev"
+		echo -e " [-] osvg: $osvg"
+	fi
 	echo ' [-] check for attached SCSI removable disk'
 	newSD=`grep -Ff <(hwinfo  --disk --short) <(hwinfo --usb --short) |grep -v 'disk:' |awk '{print $1}'`
-#       newSD=`dmesg |grep ' sd.*Attached SCSI removable disk' |awk '{print $5}' |awk -F '[' '{print $2}' |awk -F ']' '{print $1}' |tail -n 1`
 	if [ -z ${newSD+x} ] ;then
 		printf "\n\n$RED [!] nothing found... please check if the device connectet\n $NC"
 		exit 1
