@@ -4,7 +4,6 @@
 # div. variables
 
 minus='---------------------------------------------------------------------------------------------------'
-osvg=osvg
 imgFolder='/opt/images/'
 toDay=$(date +"%Y%m%d")
 nImgName='raw'
@@ -56,7 +55,7 @@ checkDev ()
 	else
 		# save the osVG
 		osvg=$(lvs $rpart |grep -v LSize |awk '{print $2}')
-		# ausgabe ist die Disk z.b "sda" oder "nvme0n1"
+		# output is the device z.b "sda" or "nvme0n1"
 		rootDev=`lsblk |grep $osvg -B5 |grep -v $osvg| awk '{print $1}' |egrep '^.[a-z]'`
 		printf " [-] lvm found \n [-] root disk: $rootDev \n [-] osvg: $osvg \n"
 	fi
@@ -152,28 +151,33 @@ chooseIMG ()
 sd2img ()
 {
 	clear
-        printf "\n$GREEN -> check attached SD disk >$YELL create image from SD card$NC \n\n [+] Task: create image from SD card\n\n$minus\n\n \n"
+  printf "\n$GREEN -> check attached SD disk >$YELL create image from SD card$NC \n\n [+] Task: create image from SD card\n\n$minus\n\n \n"
 	np="$imgFolder$nImgName-$toDay"
+	# check if the folder /opt/images exist and otherwise create it
 	if [ ! -d /opt/images ] ;then
 		echo " [-] folder $imgFolder not found"
 		mkdir /opt/images
 		echo " [-] $imgFolder created"
 	fi
-	Size=`fdisk -l --bytes $newSD |grep ^$newSD  |awk '{print $5}' |tail -1`
-	SIZE=$(($Size/1000000))
+	# check the size from the beginnig until the last partition
+	Size=`fdisk -l --bytes $newSD |grep ^$newSD  |awk '{print $5}' |tail -1` ;SIZE=$(($Size/1000000))
 	printf " [-] size of partition is : $SIZE M\n [-] read the last used sector\n"
+	# read the last used sektor
 	endSek=`fdisk -l $newSD |grep ^$newSD  |awk '{print $3}' |tail -1`
 	echo ' [-] extend the value by 1000 for safety'
 	rEnd=$(($endSek+1000))
-        echo ' [-] find mountpoints and umonut it!'
-        um=`echo $newSD |tr '/' ' ' |awk '{print $2}'`
-        um1=`lsblk |egrep $um.*part |awk '{print $7}'`
+  echo ' [-] find mountpoints and umonut it!'
+	# search mountpoints and save it in variables
+  um=`echo $newSD |tr '/' ' ' |awk '{print $2}'` ;um1=`lsblk |egrep $um.*part |awk '{print $7}'`
+	# if variable not empty umount it
 	if [ ! -z "$um1" ] ;then
 		 umount $um1
 	fi
+	# redefine again the variable and if empty the umount was successfully
 	um1=`lsblk |egrep $um.*part |awk '{print $7}'`
 	if [ -z "$um1" ] ;then
 		 printf " [-]$GREEN umount successfully$NC\n"
+	# if the umount wasn't successfully, it try to force it 3 time
 	else
 		count=0
 		while [ ! -z "$um1" ] || [ "$count" == "3" ]
@@ -183,49 +187,50 @@ sd2img ()
 			count=$((count+1))
 			um1=`lsblk |egrep $um.*part |awk '{print $7}'`
 		done
-		if [ ! -z "$um1" ] ;then
+		# if the force umount not work the script will abort
+	if [ ! -z "$um1" ] ;then
 		       printf "$RED\n [!] umount cannot be performed\n [!] try to do this manually and with the following command this step can be done:\n$NC [-] check manually if the name is already assigned\n\n [c] dd if=$newSD  of=/opt/images/$nImgName-$toDay.img count=$rEnd status=progress \n\n $RES [!] Do nothing if you dont know what you do... $NC \n$minus"
 		       exit 1
-	       fi
-       fi
-       if [ -f /opt/images/$nImgName-$toDay.img ] ;then
-               printf "\n$minus\n$RED [!] name is already taken - name: $nImgName-$toDay.img\n$NC"
-               printf " [?] do you want to$RED overwrite$NC it or give it a$GREEN unique$NC name?$RED o$NC =$RED overwrite$NC /$GREEN u$NC =$GREEN unique$NC\: " ;read -p " " ans
-	       if [ $ans == "u" ] || [ $ans == "unique:" ] ;then
-			np="/opt/images/$nImgName-$toDay"
-			c=1
-			nppc=$np-$c
-			while [ -f $nppc.img ]
-			do
-				c=$((c+1))
-				nppc=$np-$c
-			done
-		      echo " [-] create new image: $nppc.img"
-	              dd if=$newSD  of=$nppc.img count=$rEnd status=progress
-		      printf " [-]$GREEN done $NC \n [-] check image\n"
-		      cmp -l $newSD $nppc.img -n $rEnd
-		      printf "\n$minus\n\n"
-		      exit 1
-		fi
-                if [ "$ans" == "o" ] || [ "$ans" == "overwrite" ] ;then
-                       echo test
-                        rm -f /opt/images/$nImgName-$toDay.img 2>/dev/null
-			p="/opt/images/$nImgName-$toDay"
-	                echo " [-] create new image: $np.img"
-              		dd if=$newSD  of=$np.img count=$rEnd status=progress
-	                printf " [-]$GREEN done$NC \n [-] check image \n"
-	                cmp -l $newSD $np.img -n $rEnd
- 			printf "\n$minus\n\n"
- 	                exit 1
-                fi
-       else
-	       np="/opt/images/$nImgName-$toDay"
-	       echo " [-] create new image: $np.img"
-	       dd if=$newSD  of=$np.img count=$rEnd status=progress
-	       printf " [-]$GREEN done$NC \n [-] check image \n"
-               cmp -l $newSD $np.img -n $rEnd
-               printf "\n$minus\n\n"
-               exit 1
+	   fi
+  fi
+			 # check if the name already is taken and if you want to overwrite or set a specific name
+  if [ -f /opt/images/$nImgName-$toDay.img ] ;then
+       printf "\n$minus\n$RED [!] name is already taken - name: $nImgName-$toDay.img\n$NC"
+       printf " [?] do you want to$RED overwrite$NC it or give it a$GREEN unique$NC name?$RED o$NC =$RED overwrite$NC /$GREEN u$NC =$GREEN unique$NC\: " ;read -p " " ans
+	     if [ $ans == "u" ] || [ $ans == "unique:" ] ;then
+			 			np="/opt/images/$nImgName-$toDay" ;c=1 ;nppc=$np-$c
+						# create an name wit a aspecific nr 1-9
+						while [ -f $nppc.img ]
+								do
+								c=$((c+1))
+								nppc=$np-$c
+						done
+		      	echo " [-] create new image: $nppc.img"
+	          dd if=$newSD  of=$nppc.img count=$rEnd status=progress
+		      	printf " [-]$GREEN done $NC \n [-] check image\n"
+		      	cmp -l $newSD $nppc.img -n $rEnd
+		      	printf "\n$minus\n\n"
+		      	exit 1
+				fi
+        if [ "$ans" == "o" ] || [ "$ans" == "overwrite" ] ;then
+            echo test
+        		rm -f /opt/images/$nImgName-$toDay.img 2>/dev/null
+						p="/opt/images/$nImgName-$toDay"
+	          echo " [-] create new image: $np.img"
+            dd if=$newSD  of=$np.img count=$rEnd status=progress
+	          printf " [-]$GREEN done$NC \n [-] check image \n"
+	          cmp -l $newSD $np.img -n $rEnd
+						printf "\n$minus\n\n"
+ 	          exit 1
+        fi
+       	else
+						np="/opt/images/$nImgName-$toDay"
+	      		echo " [-] create new image: $np.img"
+	      		dd if=$newSD  of=$np.img count=$rEnd status=progress
+	      		printf " [-]$GREEN done$NC \n [-] check image \n"
+         		cmp -l $newSD $np.img -n $rEnd
+         		printf "\n$minus\n\n"
+         		exit 1
        fi
        sleep 5 ;Device=`echo $newSD |tr '/' ' ' |awk '{print $2}'` ;echo 1 >/sys/class/block/$Device/device/delete 2&>/dev/null
 }
