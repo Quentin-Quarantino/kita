@@ -260,7 +260,7 @@ case "$q1" in
 		checkDev
 		checkIMG
 		rmOldParts
-                chooseIMG
+    chooseIMG
 		img2sd
 		exit 1
 	;;
